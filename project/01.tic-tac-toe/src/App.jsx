@@ -1,17 +1,17 @@
-import { useState } from "react"
-import { Square } from "./components/Square"
-import { TURNS } from "./constants/constants"
-import { checkWinnerFrom, checkEndGame } from "./logic/board"
-import { WinnerModal } from "./components/WinnerModal"
-import { Board } from "./components/Board"
+import { useState } from 'react'
+import { Square } from './components/Square'
+import { TURNS } from './constants/constants'
+import { checkWinnerFrom, checkEndGame } from './logic/board'
+import { WinnerModal } from './components/WinnerModal'
+import { Board } from './components/Board'
 
-function App() {
+function App () {
   // Estado del tablero
   const [board, setBoard] = useState(() => {
     const boardFromStorage = window.localStorage.getItem('board')
     return boardFromStorage ? JSON.parse(boardFromStorage) : Array(9).fill(null)
-    })
-    // De quien es el turno - estado inicial X
+  })
+  // De quien es el turno - estado inicial X
   const [turn, setTurn] = useState(() => {
     const turnFromStorage = window.localStorage.getItem('turn')
     return turnFromStorage ?? TURNS.X
@@ -19,9 +19,8 @@ function App() {
   // null es no hay ganador, false es que hay empate
   const [winner, setWinner] = useState(null)
 
-
   const updateBoard = (index) => {
-    if (board[index] || winner) return 
+    if (board[index] || winner) return
     // Modificar tablro
     const newBoard = [...board]
     newBoard[index] = turn
@@ -34,9 +33,9 @@ function App() {
     window.localStorage.setItem('turn', newTurn)
     // chequear ganador
     const newWinner = checkWinnerFrom(newBoard)
-    if(newWinner) {
+    if (newWinner) {
       setWinner(() => {
-        console.log(`Ganador: ${newWinner}`);
+        console.log(`Ganador: ${newWinner}`)
         return newWinner
       })
     } else if (checkEndGame(newBoard)) {
@@ -51,15 +50,15 @@ function App() {
     window.localStorage.removeItem('board')
     window.localStorage.removeItem('turn')
   }
-  
+
   return (
-    <main className="board">
+    <main className='board'>
       <h1>Tic Tac Toe</h1>
       <button onClick={resetGame}>Empezar de nuevo</button>
-      
-      <Board board={board} updateBoard={updateBoard}/>
 
-      <section className="turn">
+      <Board board={board} updateBoard={updateBoard} />
+
+      <section className='turn'>
         <Square isSelected={turn === TURNS.X}>
           {TURNS.X}
         </Square>
@@ -68,7 +67,7 @@ function App() {
         </Square>
       </section>
 
-      <WinnerModal winner={winner} resetGame={resetGame}/>
+      <WinnerModal winner={winner} resetGame={resetGame} />
 
     </main>
   )
