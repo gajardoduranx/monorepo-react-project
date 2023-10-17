@@ -21,7 +21,7 @@ function App () {
 
   const updateBoard = (index) => {
     if (board[index] || winner) return
-    // Modificar tablro
+    // Modificar tablero
     const newBoard = [...board]
     newBoard[index] = turn
     setBoard(newBoard)

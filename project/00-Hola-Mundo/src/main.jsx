@@ -27,7 +27,3 @@ root.render(
 // Virtual DOM - re-renderizado de padres e hijos
 // Hook - useState - [1, 2] = useState(initialState)
 // Renderizado de listas con .map()
-
-
-
-

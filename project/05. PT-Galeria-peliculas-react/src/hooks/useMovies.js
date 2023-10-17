@@ -1,29 +1,42 @@
-import { useState } from 'react'
-// import withMovies from '../mocks/with-results.json'
-import withoutResults from '../mocks/no-results.json'
+// PETICION Y OBTENCION DE DATOS (PELICULAS) -SERVICIOS
 
-export function useMovies ({ search }) {
-  const [responseMovies, setResponseMovies] = useState([])
-  const movies = responseMovies.Search
+import { useState, useRef, useMemo, useCallback } from 'react'
+import { searchMovies } from '../services/movies'
 
-  const mappedMovies = movies?.map(movie => ({
-    id: movie.imdbID,
-    title: movie.Title,
-    year: movie.Year,
-    poster: movie.Poster
-  }))
+export function useMovies ({ search, sort }) {
+  const [movies, setMovies] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  // Valor mutable que se mantiene entre renderizados - busqueda anterior
+  const previousSearch = useRef(search)
 
-  const getMovies = () => {
-    if (search) {
-      // setResponseMovies(withMovies)
-      fetch(`https://www.omdbapi.com/?apikey=fa8de440&s=${search}`)
-        .then(res => res.json())
-        .then(data => {
-          setResponseMovies(data)
-        })
-    } else {
-      setResponseMovies(withoutResults)
+  // Funcion exportada para llamar al servicio segun el search recibido en useMovies - UseCallback para evitar renderizados y memorizar funcion
+  const getMovies = useCallback(async ({ search }) => {
+    // Comparar la busquda anterior con el search actual- si ambos son iguales se detiene la ejecucion 
+    if(search === previousSearch.current) return
+    try {
+      setLoading(true)
+      setError(null)
+      // asignar el search actual al valor mutable
+      previousSearch.current = search
+      const newMovies = await searchMovies({ search })
+      setMovies(newMovies)
+      console.log(movies)
+    } catch (e) {
+      setError(e.message)
+      console.log(error)
+    } finally {
+      setLoading(false)
     }
-  }
-  return { movies: mappedMovies, getMovies }
+  }, [])
+// USO DE USE MEMO PARA MEMORIZAR UN CALCULO Y EJECUTARLO SOLO CUANDO CAMBIAN [SORT, MOVIES] 
+  const sortedMovies = useMemo(() => {
+    console.log('usando use memo')
+     return sort
+     ? [...movies].sort((a, b) => a.title.localeCompare(b.title))
+     : movies 
+  }, [sort, movies])
+
+  // Se exporta las peliculas, la funcion que llama el servicio y el loading  
+  return { movies: sortedMovies, getMovies, loading }
 }

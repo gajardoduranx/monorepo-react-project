@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import { Movies } from './components/Movies'
 import { useMovies } from './hooks/useMovies'
+import { debounce } from 'just-debounce-it'
 
 function useSearch () {
   const [search, setSearch] = useState('')
@@ -32,17 +33,30 @@ function useSearch () {
 }
 
 function App () {
+
+  const  [sort, setSort] = useState(false)
   const { search, setSearch, error } = useSearch()
-  const { movies, getMovies } = useMovies({ search }) // Custom Hook
+  const { movies, getMovies, loading } = useMovies({ search, sort }) // Custom Hook
+
+  // Funcion recordada con useCallback que tiene un debounce para demorar la ejecucion
+  const debounceGetMovies = useCallback(debounce((search) =>{
+    console.log('search', search)
+    getMovies({ search })
+  }, 1000), [])
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    getMovies()
-    console.log({ search })
+    getMovies({ search })
   }
   const handleChange = (e) => {
     const newSearch = e.target.value
     setSearch(newSearch)
+    // debounce
+    debounceGetMovies(newSearch)
+  }
+  // Handle alternador de sort
+  const handleSort = () => {
+    setSort(!sort)
   }
 
   return (
@@ -51,12 +65,15 @@ function App () {
         <h1>Buscador de peliculas</h1>
         <form className='form' onSubmit={handleSubmit}>
           <input name='query' value={search} onChange={handleChange} placeholder='Averngers, Star Wars, Matrix...' />
+          <input type="checkbox" onChange={handleSort} checked={sort} />
           <button>Buscar</button>
         </form>
         {error && <p>{error}</p>}
       </header>
       <main>
-        <Movies movies={movies} />
+        {
+        loading ? <p>Cargando...</p> : <Movies movies={movies} />
+        }
       </main>
     </div>
   )

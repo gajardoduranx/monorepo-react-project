@@ -21,4 +21,6 @@ Primera iteración:
 
 ✅ Haz que la búsqueda se haga automáticamente al escribir.
 
-✅ Evita que se haga la búsqueda continuamente al escribir (debounce)
+✅ Evita que se haga la búsqueda continuamente al escribir (debounce) - use debounce, lodash, just angus
+
+El cuerpo de la funcion se renderiza cada vez que cambia 

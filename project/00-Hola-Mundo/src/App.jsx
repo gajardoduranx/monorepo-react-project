@@ -1,11 +1,11 @@
 import './App.css'
 import { TwitterFollowCard } from './TwitterFollowCard'
 
-function App() {
+function App () {
   // FUNCION DE FORMATEO PARA USERNAME (PROPS)
   const formatUserName = (userName) => `@${userName}`
   // OBJETO CON LAS PROPS QUE RECIBEN LOS COMPONENTES HIJOS
-  const midudev = {isFollowing: true, userName: 'midudev', name: 'Miguel Angel Duran'}
+  const midudev = { isFollowing: true, userName: 'midudev', name: 'Miguel Angel Duran' }
   // Renderizado de listas con .map()
   const users = [
     {
@@ -32,16 +32,16 @@ function App() {
   return (
     <section className='App'>
 
-      <TwitterFollowCard 
+      <TwitterFollowCard
         {...midudev}
         formatUserName={formatUserName}
       />
 
-    {
+      {
       users.map((user, index) => {
-        const {name, userName, isFollowing,} = user
+        const { name, userName, isFollowing } = user
         return (
-          <TwitterFollowCard 
+          <TwitterFollowCard
             key={index}
             userName={userName}
             initialFollowing={isFollowing}
