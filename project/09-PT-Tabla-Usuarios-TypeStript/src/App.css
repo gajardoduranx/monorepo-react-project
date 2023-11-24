@@ -3,4 +3,59 @@
   padding: 2rem;
   text-align: center;
   width: 100%;
+  background-color: #333;
+  color: aliceblue;
+}
+body {
+  background-color: #333;
+
+}
+.table--showColors tr:nth-child(odd) {
+  background-color: #333;
+}
+.table--showColors tr:nth-child(even) {
+  background-color: #555;
+}
+
+header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 48px;
+  justify-content: center;
+  align-items: center;
+  background-color: #333;
+  color: aliceblue;
+}
+header div {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  justify-content: center;
+  align-items: center;
+  background-color: #333;
+  color: aliceblue;
+}
+
+table thead tr th {
+  background-color: #555;
+  padding: 10px 0;
+}
+
+header button {
+  background-color: #1c1616;
+  color: #c5ba21;
+  border: 1.5px solid #ada429;
+}
+
+header input {
+  padding: 10px;
+  background-color: #555;
+  color: aliceblue;
+  overflow: hidden;
+  border: 1.5px solid #ada429;
+}
+
+.pointer {
+  cursor: crosshair;
 }

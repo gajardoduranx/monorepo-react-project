@@ -1,65 +1,109 @@
 import './App.css'
-import { useState, useEffect, useRef } from 'react'
-import { type User } from './types'
+import { useState, useMemo } from 'react'
+import { SortBy, type User } from './types.d'
 import { UsersList } from './components/UserList'
+import { useInfiniteQuery } from '@tanstack/react-query'
+
+const fetchUsers = ({ pageParam = 1 }: {pageParam?: number}) => {
+  return fetch(`https://randomuser.me/api?results=10&seed=midu&page=${pageParam}`)
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Error al obtener los usuarios')
+      }
+      return res.json()
+    })
+    .then(data => {
+      const nextCursor = Number(data.info.page)
+      return {
+        users: data.results,
+        nextCursor
+      }
+    })
+}
+
 
 function App() {
-  const [users, setUsers] = useState<User[]>([])
+  // useQuery
+  const { isLoading, isError, data, refetch, fetchNextPage, hasNextPage } = useInfiniteQuery<{ users: User[], nextCursor: number }>(
+    ['users'], //queryKey
+    fetchUsers, // como traer la informacion
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor
+    }
+  )
+  console.log(data)
+  // Estados
   const [showColors, setShowColors] = useState(false)
-  const [sortByCountry, setSortByCountry] = useState(false)
-  // useRef del estado inicia
-  const originalUsers = useRef<User[]>([])
+  const [sorting, setSorting] = useState<SortBy>(SortBy.NONE)
+  const [filterCountry, setFilterCountry] = useState<string | null>(null)
+
+  const [currentPage, setCurrentPage] = useState(1)
 
   const toggleColors = () => {
     setShowColors(!showColors)
-    console.log(showColors)
   }
-
   const toggleSortByCountry = () => {
-    setSortByCountry(prevState => !prevState)
-  } 
-
+    const newSortingValue = sorting === SortBy.NONE ? SortBy.COUNTRY : SortBy.NONE
+    setSorting(newSortingValue)
+  }
   const handleDelete = (email: string) => {
     const filteredUsers = users.filter(user => user.email !== email)
-    setUsers(filteredUsers)
+    // setUsers(filteredUsers)
+  }
+  const handleReset = async () => {
+    // setUsers(originalUsers.current)
+    await refetch()
+  }
+  const handleChangeSort = (sort: SortBy) => {
+    setSorting(sort)
   }
 
-  const handleReset = () => {
-    setUsers(originalUsers.current)
-  
-  }
+  const filteredUsers = useMemo(() => {
+    return filterCountry !== null && filterCountry.length > 0
+      ? users.filter(user => {
+        return user.location.country.toLowerCase().includes(filterCountry.toLowerCase())
+      }) : users
+  }, [filterCountry, users])
 
-  useEffect(() => {
-    fetch('https://randomuser.me/api?results=100')
-      .then(res => res.json())
-      .then(data => {
-        setUsers(data.results)
-        originalUsers.current = data.results
-      })
-      .catch(err => console.log(err))
-  }, [])
-
-
-  const sortedUsers = sortByCountry ? users.toSorted((a, b) => {
-    return a.location.country.localeCompare(b.location.country)
-  }) : users
+  const sortedUsers = useMemo(() => {
+    if (sorting === SortBy.NONE) return filteredUsers
+    const compareProperties: Record<string, (user: User) => any> = {
+      [SortBy.NAME]: user => user.name.first,
+      [SortBy.LAST]: user => user.name.last,
+      [SortBy.COUNTRY]: user => user.location.country,
+    }
+    return filteredUsers.toSorted((a, b) => {
+      const extractProperty = compareProperties[sorting]
+      return extractProperty(a).localeCompare(extractProperty(b))
+    })
+  }, [filteredUsers, sorting])
 
   return (
     <div className='App'>
       <header>
-        <h1>Prueba Tecnica</h1>
-        <button onClick={toggleColors}>
-          color
-        </button>
-        <button onClick={toggleSortByCountry}>
-          {sortByCountry ? 'No ordernar por país' : 'Ordenar por país'}
-        </button>
-        <button onClick={handleReset}>
-          Resetear
-        </button>
+        <h1>UsersList</h1>
+        <div>
+          <button onClick={toggleColors}>
+            color
+          </button>
+          <button onClick={toggleSortByCountry}>
+            {sorting === SortBy.COUNTRY ? 'No ordernar por país' : 'Ordenar por país'}
+          </button>
+          <button onClick={handleReset}>
+            Resetear
+          </button>
+          <input placeholder='Filtrar por país' onChange={e => setFilterCountry(e.target.value)} />
+        </div>
       </header>
       <main>
-        <UsersList showColors={showColors} users={sortedUsers} deleteUser={handleDelete} />
+        {users.length > 0 &&
+          <UsersList changeSorting={handleChangeSort} showColors={showColors} users={sortedUsers} deleteUser={handleDelete} />
+        }
+        {isLoading && <p>Cargando...</p>}
+        {!isLoading && isError && <p>Ha habido un error</p>}
+        {!isLoading && !isError && users.length === 0 && <p>No hay usuarios</p>}
+
+        {!isLoading && !isError && <button onClick={() => setCurrentPage(currentPage + 1)} >Más resultados</button>}
       </main>
     </div>
   )
